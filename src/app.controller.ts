@@ -31,6 +31,7 @@ export class CatsController {
     const response = await this.http
       .get('https://api.coindesk.com/v1/bpi/currentprice.json')
       .pipe(map((res) => res.data))
+
       .pipe(
         catchError(() => {
           throw new ForbiddenException('API not available');
