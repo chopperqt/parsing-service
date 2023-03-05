@@ -11,6 +11,7 @@ import { AppService, CatsService } from './app.service';
 import { CatsDto } from './dto/cats.dto';
 import { map, catchError } from 'rxjs';
 import { ForbiddenException, Injectable } from '@nestjs/common';
+import { getHtmlByUrl } from './utils/getHtmlByUrl';
 
 @Controller()
 export class AppController {
@@ -27,18 +28,16 @@ export class CatsController {
   constructor(private http: HttpService) {}
 
   @Get()
-  async getHtmlByUrl() {
-    const response = await this.http
-      .get('https://api.coindesk.com/v1/bpi/currentprice.json')
-      .pipe(map((res) => res.data))
+  async getSomeThing(@Body() body) {
+    const url = body?.url;
 
-      .pipe(
-        catchError(() => {
-          throw new ForbiddenException('API not available');
-        }),
-      );
+    if (!url) {
+      return 'Something wend wrong';
+    }
 
-    return response;
+    const html = await getHtmlByUrl(url);
+
+    return html;
   }
 }
 
