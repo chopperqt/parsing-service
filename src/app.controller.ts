@@ -1,5 +1,15 @@
-import { Controller, Get, Body } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Body,
+  Res,
+  StreamableFile,
+  Response,
+} from '@nestjs/common';
 import * as cheerio from 'cheerio';
+import * as fs from 'node:fs';
+import { createReadStream } from 'node:fs';
+import path from 'node:path';
 
 import { AppService } from './app.service';
 import { ParserDto } from './dto/parser.dto';
@@ -9,7 +19,10 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get()
-  async getData(@Body() body: ParserDto): Promise<any> {
+  async getData(
+    @Response({ passthrough: true }) res,
+    @Body() body: ParserDto,
+  ): Promise<any> {
     const html = await this.appService.getHtmlByUrl(body.url);
 
     const $ = await cheerio.load(html);
@@ -42,6 +55,17 @@ export class AppController {
 
       data[key] = text || '';
     });
+
+    if (body.shouldSaveScreenshot) {
+      const screenshot = await this.appService.getPdf(body.url);
+
+      //data['screenshot'] = screenshot;
+      res.set({
+        'Content-Type': 'image/jpeg',
+      });
+
+      return new StreamableFile(screenshot);
+    }
 
     return data;
   }

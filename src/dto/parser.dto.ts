@@ -13,4 +13,6 @@ export class ParserDto {
 
   @IsNotEmpty()
   options: Option[];
+
+  shouldSaveScreenshot?: boolean;
 }
