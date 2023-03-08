@@ -1,11 +1,11 @@
 import { IsNotEmpty } from 'class-validator';
 
-type Method = 'text' | 'attr';
 export interface Option {
-  class: string;
   selector: string;
   key: string;
-  method: Method;
+  attr?: string;
+  find?: string;
+  isText?: boolean;
 }
 export class ParserDto {
   @IsNotEmpty()

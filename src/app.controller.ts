@@ -1,7 +1,7 @@
 import { Controller, Get, Body } from '@nestjs/common';
 import * as cheerio from 'cheerio';
-import { AppService } from './app.service';
 
+import { AppService } from './app.service';
 import { ParserDto } from './dto/parser.dto';
 
 @Controller()
@@ -16,11 +16,32 @@ export class AppController {
 
     const data = {};
 
-    body.options.forEach((item) => {
-      data[item.key] = $(`${item.selector} ${item.class}`).text();
-    });
+    body.options.forEach(({ attr, selector, key, isText, find }) => {
+      let text = '';
+      let parseData: cheerio.Cheerio<cheerio.AnyNode> = $(selector);
 
-    console.log('body: ', body.options);
+      if (find) {
+        parseData = parseData.find(find);
+      }
+
+      if (attr && !isText) {
+        const findText = parseData.attr(attr);
+
+        if (findText) {
+          text = findText;
+        }
+      }
+
+      if (isText && !attr) {
+        const findText = parseData.text();
+
+        if (findText) {
+          text = findText;
+        }
+      }
+
+      data[key] = text || '';
+    });
 
     return data;
   }
