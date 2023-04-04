@@ -13,6 +13,9 @@ export class ParserDto {
 
   @IsNotEmpty()
   options: Option[];
+}
 
-  shouldSaveScreenshot?: boolean;
+export class ParserScreenshotDto {
+  @IsNotEmpty()
+  url: string;
 }
