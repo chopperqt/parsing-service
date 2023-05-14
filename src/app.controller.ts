@@ -4,11 +4,12 @@ import {
   Body,
   StreamableFile,
   Response,
+  Header,
 } from '@nestjs/common';
 import * as cheerio from 'cheerio';
 
 import { AppService } from './app.service';
-import { ParserDto, ParserScreenshotDto } from './dto/parser.dto';
+import { GetDataDto, GetFileByUrlDto } from './dto/parser.dto';
 
 @Controller()
 export class AppController {
@@ -16,16 +17,17 @@ export class AppController {
 
   @Get()
   async getData(
-    @Response({ passthrough: true }) res,
-    @Body() body: ParserDto,
-  ): Promise<any> {
-    const html = await this.appService.getHtmlByUrl(body.url);
+    @Response({ passthrough: true })
+    @Body()
+    { options, url }: GetDataDto,
+  ): Promise<unknown> {
+    const document = await this.appService.getHtmlByUrl(url);
 
-    const $ = await cheerio.load(html);
+    const $ = cheerio.load(document);
 
     const data = {};
 
-    body.options.forEach(({ attr, selector, key, isText, find }) => {
+    options.forEach(({ attr, selector, key, isText, find }) => {
       let text = '';
       let parseData: cheerio.Cheerio<cheerio.AnyNode> = $(selector);
 
@@ -55,17 +57,27 @@ export class AppController {
     return data;
   }
 
-  @Get(':id')
+  @Get('/screenshot')
+  @Header('Content-Type', 'image/jpeg')
   async getScreenshot(
-    @Response({ passthrough: true }) res,
-    @Body() body: ParserScreenshotDto,
-  ): Promise<any> {
-    const screenshot = await this.appService.getPdf(body.url);
-
-    res.set({
-      'Content-Type': 'image/jpeg',
-    });
+    @Response({ passthrough: true })
+    @Body()
+    { url }: GetFileByUrlDto,
+  ): Promise<StreamableFile> {
+    const screenshot = await this.appService.getScreenshot(url);
 
     return new StreamableFile(screenshot);
+  }
+
+  @Get('/pdf')
+  @Header('Content-Type', 'application/pdf')
+  async getPdf(
+    @Response({ passthrough: true })
+    @Body()
+    { url }: GetFileByUrlDto,
+  ): Promise<any> {
+    const pdf = await this.appService.getPdf(url);
+
+    return new StreamableFile(pdf);
   }
 }
